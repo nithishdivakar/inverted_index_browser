@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inverted Index Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inverted Index Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<style>
     body {
         font-family: Arial, sans-serif;
         background-color:#FFF;
@@ -32,7 +32,6 @@
         min-width: 100px;
         max-width:400px;
         border: 1px solid #000;
-        margin-left: 10px;
         margin-bottom:20px;
         padding: 10px;
         border-radius: 0px;
@@ -44,22 +43,20 @@
     .post-content{
         overflow:scroll;
     }
-  </style>
+</style>
 </head>
 <body>
-    <div id="app" class="container">
-
+<div id="app" class="container">
     <div style="grid-area:h; text-align:center">
         <big><strong>Inverted Index Viewer</strong></big>
     </div>
     <div class="panel" style="grid-area:l">
-      <ul style="padding-inline-start: 0;">
-        <li v-for="doc in displayedDocs" :key="doc.uri" class="document">
-            <a :href="'#' + doc.uri"> [{{ '{{' }} doc.metadata['index']{{ '}}' }}] {{ '{{' }} doc.metadata['title'] {{ '}}' }}</a>
-        </li>
-      </ul>
+        <ul style="padding-inline-start: 0;">
+            <li v-for="doc in displayedDocs" :key="doc.uri" class="document">
+                <a :href="'#' + doc.uri"> [{{ '{{' }} doc.metadata['index']{{ '}}' }}] {{ '{{' }} doc.metadata['title'] {{ '}}' }}</a>
+            </li>
+        </ul>
     </div>
-
     
     <div class="panel" style="grid-area:c">
         <post
@@ -72,8 +69,7 @@
     </div>
 
     <div class="panel" style="grid-area:r">
-      <div>
-        <input type="text" v-model="searchQuery" placeholder="Search tokens"><br>
+        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens"><br>
         <ul style="padding-inline-start: 0;">
             <li v-for="token in filteredTokens" :key="token">
             <label>
@@ -86,19 +82,17 @@
             </label>
             </li>
         </ul>
-      </div>
     </div>
     
     <div class="panel" style="grid-area:f">
         <small>footer</small>
     </div>
-  </div>
+</div>
 
-  <script>
-
+<script>
     Vue.component('post', {
-      props: ["uri", 'content', 'metadata'],
-      template: `
+        props: ["uri", 'content', 'metadata'],
+        template: `
         <div class="post" :id="uri">
             <big><b>[{{ '{{' }} metadata['index']{{ '}}' }}] {{ '{{' }} metadata['title'] {{ '}}' }}</b></big><br>
             <code>{{ '{{' }} uri {{ '}}' }}</code>
@@ -106,90 +100,88 @@
             Tags:  <code v-for="tag in metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</code><br>
             ctime: {{ '{{' }} metadata['ctime'] {{ '}}' }}
         </div>
-      `
+        `
     });
 
     new Vue({
-      el: '#app',
-      data: {
-        invertedIndex: {
-            {% for term, doc_ids in INVERTED_INDEX.items() -%}
-            '{{term}}': [{% for doc_id in doc_ids -%}
-                    "{{doc_id}}",
-                {%- endfor %}],
-            {% endfor %}
+        el: '#app',
+        data: {
+            invertedIndex: {
+                {% for term, doc_ids in INVERTED_INDEX.items() -%}
+                '{{term}}': [{% for doc_id in doc_ids -%}
+                        "{{doc_id}}",
+                    {%- endfor %}],
+                {% endfor %}
+            },
+            documents :{
+                // 'id1' : {title: 'Document 1', uri: "uri", content: "content"},
+                {% for doc_id, itm in DOCUMENT_INDEX.items() -%}
+                '{{doc_id}}': { title: "{{itm['title']}}", uri: "{{itm['uri']}}", metadata:{{itm['metadata']}},     content: `{{itm['content']}}` },
+                {% endfor %}
+            },
+            selectedTokens: [],
+            tokenSearchQuery: ''
         },
-        documents :{
-            // 'id1' : {title: 'Document 1', uri: "uri", content: "content"},
-            {% for doc_id, itm in DOCUMENT_INDEX.items() -%}
-            '{{doc_id}}': { title: "{{itm['title']}}", uri: "{{itm['uri']}}", metadata:{{itm['metadata']}}, content: `{{itm['content']}}` },
-            {% endfor %}
-        },
-        selectedTokens: [],
-        searchQuery: ''
-      },
 
-      computed: {
-        tokens() {
-          return Object.keys(this.invertedIndex);
-        },
-        filteredTokens() {
-          const query = this.searchQuery.toLowerCase();
-          const matched_tokens = this.tokens.filter(token => token.toLowerCase().includes(query)); // add selected tokens
-          return Array.from(new Set([...matched_tokens, ...this.selectedTokens])).sort(); 
-        },
-        displayedDocs() {
-          let docsSet = new Set(); // Using a Set to store unique documents
-          if (this.selectedTokens.length === 0) {
-            // No tokens selected, display all documents
-            Object.values(this.invertedIndex).flat().forEach(doc => docsSet.add(doc));
-          } else {
-            // Display documents associated with selected tokens
-            this.selectedTokens.forEach(token => {
-              this.invertedIndex[token].forEach(doc_id => {
-                docsSet.add(doc_id);
-              });
-            });
-          }
-          // Convert Set back to an array and sort documents by key
-          let docs = Array.from(docsSet);
-
-            function splitDigitsAndAlphabets(str) {
-              return str.match(/\d+|[a-zA-Z]+/g);
-            }
-
-            // Custom sort function for Zettelkasten IDs
-            function customZettelkastenSort(a, b) {
-                const partsA = splitDigitsAndAlphabets(a);
-                const partsB = splitDigitsAndAlphabets(b);
-
-                // Compare each corresponding part
-                for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
-                    const partA = partsA[i];
-                    const partB = partsB[i];
-
-                    // Compare numbers
-                    if (!isNaN(partA) && !isNaN(partB)) {
-                        const numA = parseInt(partA, 10);
-                        const numB = parseInt(partB, 10);
-                        if (numA !== numB) {
-                            return numA - numB;
-                        }
-                    } else if (partA !== partB) {
-                        // Compare lexicographically
-                        return partA.localeCompare(partB);
-                    }
+        computed: {
+            tokens() {
+              return Object.keys(this.invertedIndex);
+            },
+            filteredTokens() {
+                const query = this.tokenSearchQuery.toLowerCase();
+                const matched_tokens = this.tokens.filter(token => {
+                    const queryWords = query.toLowerCase().split(' ');
+                    return queryWords.some(word => token.toLowerCase().includes(word));
+                });
+                return Array.from(new Set([...matched_tokens, ...this.selectedTokens])).sort(); 
+            },
+            displayedDocs() {
+                let docsSet = new Set(); // Using a Set to store unique documents
+                if (this.selectedTokens.length === 0) {
+                    Object.values(this.invertedIndex).flat().forEach(doc => docsSet.add(doc));
+                } else {
+                    this.selectedTokens.forEach(token => {
+                        this.invertedIndex[token].forEach(doc_id => {
+                            docsSet.add(doc_id);
+                        });
+                    });
                 }
 
-              // If one string is a prefix of the other, the shorter one should come first
-              return partsA.length - partsB.length;
-            }
+                let docs = Array.from(docsSet);
 
-          let D = docs.sort(customZettelkastenSort).map(doc => this.documents[doc]).filter(Boolean);
-          return D;
+                function splitDigitsAndAlphabets(str) {
+                  return str.match(/\d+|[a-zA-Z]+/g);
+                }
+
+                // Custom sort function for Zettelkasten IDs
+                function customZettelkastenSort(a, b) {
+                    const partsA = splitDigitsAndAlphabets(a);
+                    const partsB = splitDigitsAndAlphabets(b);
+
+                    for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
+                        const partA = partsA[i];
+                        const partB = partsB[i];
+
+                        // Compare numbers
+                        if (!isNaN(partA) && !isNaN(partB)) {
+                            const numA = parseInt(partA, 10);
+                            const numB = parseInt(partB, 10);
+                            if (numA !== numB) {
+                                return numA - numB;
+                            }
+                        } else if (partA !== partB) {
+                            return partA.localeCompare(partB);
+                        }
+                    }
+
+                  return partsA.length - partsB.length;
+                }
+
+                let D = docs.sort(customZettelkastenSort).map(doc => this.documents[doc]).filter(Boolean);
+                return D;
+            }
         }
-      }
     });
-  </script>
+</script>
 </body>
 </html>
