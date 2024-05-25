@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inverted Index Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color:#FFF;
+        font-size: 12px;
+    }
+    a{word-break: break-all;}
+    .document {
+        margin-left: 20px;
+    }
+    .container {
+        display: grid;
+        grid-template-columns: 300px auto auto 200px;
+        grid-template-rows: 30px auto 30px;
+        grid-template-areas: 
+            "h h h h"
+            "l c c r"
+            "f f f f";
+        height: 99vh;
+        column-gap: 10px;
+        row-gap: 10px;
+
+    }
+    .post {
+        min-width: 100px;
+        max-width:400px;
+        border: 1px solid #000;
+        margin-bottom:20px;
+        padding: 10px;
+        border-radius: 0px;
+        background-color:#fff9c4;
+    }
+    .panel{
+        overflow:scroll;
+    }
+    .post-content{
+        overflow:scroll;
+    }
+    .post-header {
+      display: flex;
+      justify-content: space-between; /* Align items with space between */
+    }
+
+    .text-left {
+      text-align: left;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+</style>
+</head>
+<body>
+<div id="app" class="container">
+    <div style="grid-area:h; text-align:center">
+        <big><strong>Inverted Index Viewer</strong></big>
+    </div>
+    <div class="panel" style="grid-area:l">
+        <ul style="padding-inline-start: 0;">
+            <li v-for="doc in displayedDocs" :key="doc.uri" class="document">
+                <a :href="'#' + doc.uri"> [{{ '{{' }} doc.metadata['index']{{ '}}' }}] {{ '{{' }} doc.metadata['title'] {{ '}}' }}</a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="panel" style="grid-area:c">
+        <div class="post" :id="doc.uri" v-for="doc in displayedDocs" :key="doc.uri" >
+            <div class="post-header">
+              <div class="text-left">[{{ '{{' }} doc.metadata['index']{{ '}}' }}] </div>
+              <div class="text-right">{{ '{{' }} doc.metadata['ctime'] {{ '}}' }}</div>
+            </div>
+
+            <big><b>{{ '{{' }} doc.metadata['title'] {{ '}}' }}</b></big><br>
+            <code>{{ '{{' }} doc.uri {{ '}}' }}</code>
+            <div v-html="decodeBase64(doc.content)" class="post-content"></div>
+            Tags:  <code v-for="tag in doc.metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</code>
+        </div>
+    </div>
+
+    <div class="panel" style="grid-area:r">
+        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens"><br>
+        <ul style="padding-inline-start: 0;">
+            <li v-for="token in filteredTokens" :key="token">
+            <label>
+                <input
+                type="checkbox"
+                :value="token"
+                v-model="selectedTokens"
+                />
+                {{ '{{' }} token {{ '}}' }}
+            </label>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="panel" style="grid-area:f">
+        <small>footer</small>
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
