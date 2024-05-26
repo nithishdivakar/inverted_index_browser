@@ -1,19 +1,5 @@
 document.addEventListener('DOMContentLoaded',async function() {
     const jsonData = await fetchData();
-
-    // Vue.component('post', {
-    //     props: ["uri", 'content', 'metadata'],
-    //     template: `
-    //     <div class="post" :id="uri">
-    //         <big><b>[{{ '{{' }} metadata['index']{{ '}}' }}] {{ '{{' }} metadata['title'] {{ '}}' }}</b></big><br>
-    //         <code>{{ '{{' }} uri {{ '}}' }}</code>
-    //         <div v-html="content" class="post-content"></div>
-    //         Tags:  <code v-for="tag in metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</code><br>
-    //         ctime: {{ '{{' }} metadata['ctime'] {{ '}}' }}
-    //     </div>
-    //     `
-    // });
-
     new Vue({
         el: '#app',
         data: {
@@ -35,52 +21,31 @@ document.addEventListener('DOMContentLoaded',async function() {
                 return Array.from(new Set([...matched_tokens, ...this.selectedTokens])).sort(); 
             },
             displayedDocs() {
-                let docsSet = new Set(); // Using a Set to store unique documents
+                let uniqueDocsSet = new Set(); // Using a Set to store unique documents
+
                 if (this.selectedTokens.length === 0) {
-                    Object.values(this.ii.invertedIndex).flat().forEach(doc => docsSet.add(doc));
+                    // If no tokens are selected, add all documents from the inverted index
+                    Object.values(this.ii.invertedIndex).flat().forEach(docId => uniqueDocsSet.add(docId));
                 } else {
+                    // Initialize selectedDocs with the set of documents containing the first selected token
                     let selectedDocs = new Set(this.ii.invertedIndex[this.selectedTokens[0]]);
-					this.selectedTokens.forEach(token => {
-						selectedDocs = this.set_intersect(selectedDocs, new Set(this.ii.invertedIndex[token]));
+
+                    // Intersect sets of documents for each selected token
+                    this.selectedTokens.forEach(token => {
+                        selectedDocs = this.setIntersect(selectedDocs, new Set(this.ii.invertedIndex[token]));
                     });
-                    selectedDocs.forEach(doc_id => {
-                        docsSet.add(doc_id);
-                    });
+
+                    // Add the intersected document IDs to the uniqueDocsSet
+                    selectedDocs.forEach(docId => uniqueDocsSet.add(docId));
                 }
 
-                let docs = Array.from(docsSet);
+                // Convert the uniqueDocsSet to an array
+                let uniqueDocsArray = Array.from(uniqueDocsSet);
 
-                // function splitDigitsAndAlphabets(str) {
-                //   return str.match(/\d+|[a-zA-Z]+/g);
-                // }
+                // Sort and map the document IDs to their corresponding document objects, filtering out any undefined values
+                let displayedDocuments = uniqueDocsArray.sort(this.customSortFn).map(docId => this.ii.documents[docId]).filter(Boolean);
 
-                // // Custom sort function for Zettelkasten IDs
-                // function customZettelkastenSort(a, b) {
-                //     const partsA = splitDigitsAndAlphabets(a);
-                //     const partsB = splitDigitsAndAlphabets(b);
-
-                //     for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
-                //         const partA = partsA[i];
-                //         const partB = partsB[i];
-
-                //         // Compare numbers
-                //         if (!isNaN(partA) && !isNaN(partB)) {
-                //             const numA = parseInt(partA, 10);
-                //             const numB = parseInt(partB, 10);
-                //             if (numA !== numB) {
-                //                 return numA - numB;
-                //             }
-                //         } else if (partA !== partB) {
-                //             return partA.localeCompare(partB);
-                //         }
-                //     }
-
-                //   return partsA.length - partsB.length;
-                // }
-
-                // let D = docs.sort(customZettelkastenSort).map(doc => this.ii.documents[doc]).filter(Boolean);
-                let D = docs.sort().map(doc => this.ii.documents[doc]).filter(Boolean);
-                return D;
+                return displayedDocuments;
             },
         },
         methods: {
@@ -92,10 +57,34 @@ document.addEventListener('DOMContentLoaded',async function() {
                     return "err"
                 }
             },
-            set_intersect(a,b){
+            setIntersect(a,b){
 	            let intersect = new Set([...a].filter(i => b.has(i)));
 	            return intersect;
+            },
+            customSortFn(a,b){
+                // Zettelkasten Index Sort
+                const partsA = String(a).match(/\d+|[a-zA-Z]+/g);
+                const partsB = String(b).match(/\d+|[a-zA-Z]+/g);
+
+                for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
+                    const partA = partsA[i];
+                    const partB = partsB[i];
+
+                    // Compare numbers
+                    if (!isNaN(partA) && !isNaN(partB)) {
+                        const numA = parseInt(partA, 10);
+                        const numB = parseInt(partB, 10);
+                        if (numA !== numB) {
+                            return numA - numB;
+                        }
+                    } else if (partA !== partB) {
+                        return partA.localeCompare(partB);
+                    }
+                }
+
+                return partsA.length - partsB.length;
             }
+
 
         }
     });

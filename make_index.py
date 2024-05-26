@@ -9,7 +9,6 @@ import math
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer 
 import numpy as np
 import argparse
-# import utils
 from jinja2 import Environment, FileSystemLoader
 import mistune
 from nltk.tokenize import word_tokenize
@@ -74,7 +73,7 @@ DATA = {
 }
 
 with open(args.out,"w") as G:
-    json.dump(DATA,G, indent=2)
+    json.dump(DATA, G)
 
 rendered_template = index_template.render(INVERTED_INDEX=INVERTED_INDEX, DOCUMENT_INDEX=DOCUMENT_INDEX)
 print(f"Index size {len(INVERTED_INDEX)}")
