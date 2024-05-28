@@ -17,12 +17,12 @@
     }
     .container {
         display: grid;
-        grid-template-columns: 300px auto auto 200px;
+        grid-template-columns: 300px 440px auto;
         grid-template-rows: 30px auto 30px;
         grid-template-areas: 
-            "h h h h"
-            "l c c r"
-            "f f f f";
+            "h h h"
+            "l c r"
+            "f f f";
         height: 99vh;
         column-gap: 10px;
         row-gap: 10px;
@@ -56,6 +56,7 @@
       text-align: right;
     }
 </style>
+<link rel="stylesheet" href="customstyle.css">
 </head>
 <body>
 <div id="app" class="container">
@@ -73,29 +74,36 @@
     <div class="panel" style="grid-area:c">
         <div class="post" :id="doc.uri" v-for="doc in displayedDocs" :key="doc.uri" >
             <div class="post-header">
-              <div class="text-left">[{{ '{{' }} doc.metadata['index']{{ '}}' }}] </div>
-              <div class="text-right">{{ '{{' }} doc.metadata['ctime'] {{ '}}' }}</div>
+                <div class="text-left">[{{ '{{' }} doc.metadata['index']{{ '}}' }}] </div>
+                <div class="text-right">{{ '{{' }} doc.metadata['ctime'] {{ '}}' }}
+                      <br>
+                    <code>{{ '{{' }} doc.uri {{ '}}' }}</code>
+                </div>
             </div>
 
-            <big><b>{{ '{{' }} doc.metadata['title'] {{ '}}' }}</b></big><br>
-            <code>{{ '{{' }} doc.uri {{ '}}' }}</code>
+            <big><b>{{ '{{' }} doc.metadata['title'] {{ '}}' }}</b></big>
             <div v-html="decodeBase64(doc.content)" class="post-content"></div>
             Tags:  <code v-for="tag in doc.metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</code>
         </div>
     </div>
 
-    <div class="panel" style="grid-area:r">
-        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens"><br>
-        <ul style="padding-inline-start: 0;">
-            <li v-for="token in filteredTokens" :key="token">
-            <label>
-                <input
-                type="checkbox"
-                :value="token"
-                v-model="selectedTokens"
-                />
-                {{ '{{' }} token {{ '}}' }}
-            </label>
+    <div class="panel" style="grid-area:r; column-width:150px;">
+        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens" style="width:150px;"><br>
+        <ul style="padding-inline-start: 0;list-style: none;word-break: break-all;">
+            <li v-for="(tokens, letter) in groupedTokens(filteredTokens)" :key="letter">
+                <strong> {{'{{'}} letter {{'}}'}}</strong>
+                <ul style="padding-inline-start:0;">
+                    <li v-for="token in tokens" :key="token" style="padding-inline-start:0;list-style:none;">
+                        <label>
+                            <input
+                            type="checkbox"
+                            :value="token"
+                            v-model="selectedTokens"
+                            />
+                            {{ '{{' }} token {{ '}}' }}
+                        </label>
+                    </li>
+                </ul>
             </li>
         </ul>
     </div>

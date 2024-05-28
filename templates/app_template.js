@@ -83,9 +83,21 @@ document.addEventListener('DOMContentLoaded',async function() {
                 }
 
                 return partsA.length - partsB.length;
+            },
+            groupedTokens(tokens){
+                console.log(tokens);
+                const grouped = {};
+                for (const token of tokens){
+                    const firstLetter = token.charAt(0).toUpperCase();
+                    if(!(firstLetter in grouped)){
+                        grouped[firstLetter] = [];
+                    }
+                    grouped[firstLetter].push(token);
+                }
+
+                console.log(grouped);
+                return grouped;
             }
-
-
         }
     });
 });
