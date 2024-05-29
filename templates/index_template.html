@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <style>
     body {
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
         background-color:#FFF;
         font-size: 12px;
     }
@@ -18,7 +18,7 @@
     .container {
         display: grid;
         grid-template-columns: 300px 440px auto;
-        grid-template-rows: 30px auto 30px;
+        grid-template-rows: 40px auto 20px;
         grid-template-areas: 
             "h h h"
             "l c r"
@@ -35,7 +35,7 @@
         margin-bottom:20px;
         padding: 10px;
         border-radius: 0px;
-        background-color:#fff9c4;
+        background-color:#fff;
     }
     .panel{
         overflow:scroll;
@@ -55,15 +55,21 @@
     .text-right {
       text-align: right;
     }
+    span.hashtag{
+        color: #444444;
+        font-size: x-small;
+    }
 </style>
 <link rel="stylesheet" href="customstyle.css">
 </head>
 <body>
 <div id="app" class="container">
-    <div style="grid-area:h; text-align:center">
-        <big><strong>Inverted Index Viewer</strong></big>
+    <div style="grid-area:h; text-align:center; font-size:x-large;">
+        <strong>Inverted Index Viewer</strong>
     </div>
     <div class="panel" style="grid-area:l">
+        <label> <input type="checkbox" v-model="chronologicalSort" /> reverse chronological</label>
+
         <ul style="padding-inline-start: 0;">
             <li v-for="doc in displayedDocs" :key="doc.uri" class="document">
                 <a :href="'#' + doc.uri"> [{{ '{{' }} doc.metadata['index']{{ '}}' }}] {{ '{{' }} doc.metadata['title'] {{ '}}' }}</a>
@@ -83,12 +89,14 @@
 
             <big><b>{{ '{{' }} doc.metadata['title'] {{ '}}' }}</b></big>
             <div v-html="decodeBase64(doc.content)" class="post-content"></div>
-            Tags:  <code v-for="tag in doc.metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</code>
+            <span class="hashtag"> Tags:</span>  <span class="hashtag" v-for="tag in doc.metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</span>
         </div>
     </div>
 
     <div class="panel" style="grid-area:r; column-width:150px;">
         <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens" style="width:150px;"><br>
+        <label> <input type="checkbox" v-model="ORtokenSearch" /> OR </label>
+
         <ul style="padding-inline-start: 0;list-style: none;word-break: break-all;">
             <li v-for="(tokens, letter) in groupedTokens(filteredTokens)" :key="letter">
                 <strong> {{'{{'}} letter {{'}}'}}</strong>

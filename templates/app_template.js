@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded',async function() {
 	      	ii: jsonData,
 	      	isDataLoaded: false,
             selectedTokens: [],
-            tokenSearchQuery: ''
+            tokenSearchQuery: '',
+            chronologicalSort: false,
+            ORtokenSearch: false,
 	    },
         computed: {
             tokens() {
@@ -27,12 +29,18 @@ document.addEventListener('DOMContentLoaded',async function() {
                     // If no tokens are selected, add all documents from the inverted index
                     Object.values(this.ii.invertedIndex).flat().forEach(docId => uniqueDocsSet.add(docId));
                 } else {
+                    
+
                     // Initialize selectedDocs with the set of documents containing the first selected token
                     let selectedDocs = new Set(this.ii.invertedIndex[this.selectedTokens[0]]);
 
                     // Intersect sets of documents for each selected token
                     this.selectedTokens.forEach(token => {
-                        selectedDocs = this.setIntersect(selectedDocs, new Set(this.ii.invertedIndex[token]));
+                        if (this.ORtokenSearch){
+                            selectedDocs = this.setUnion(selectedDocs, new Set(this.ii.invertedIndex[token]));
+                        } else {
+                            selectedDocs = this.setIntersect(selectedDocs, new Set(this.ii.invertedIndex[token]));
+                        }
                     });
 
                     // Add the intersected document IDs to the uniqueDocsSet
@@ -42,10 +50,19 @@ document.addEventListener('DOMContentLoaded',async function() {
                 // Convert the uniqueDocsSet to an array
                 let uniqueDocsArray = Array.from(uniqueDocsSet);
 
-                // Sort and map the document IDs to their corresponding document objects, filtering out any undefined values
-                let displayedDocuments = uniqueDocsArray.sort(this.customSortFn).map(docId => this.ii.documents[docId]).filter(Boolean);
+                
+                if(this.chronologicalSort){
+                    let T = uniqueDocsArray.map(docId => this.ii.documents[docId]).filter(Boolean).sort(function(a,b){
+                        // reverse
+                        return b['metadata']['ctime'].localeCompare(a['metadata']['ctime']);
+                    });
+                    return T;
 
-                return displayedDocuments;
+                } else {
+                    let displayedDocuments = uniqueDocsArray.sort(this.customSortFn);
+                    return displayedDocuments.map(docId => this.ii.documents[docId]).filter(Boolean);
+                }
+                
             },
         },
         methods: {
@@ -60,6 +77,10 @@ document.addEventListener('DOMContentLoaded',async function() {
             setIntersect(a,b){
 	            let intersect = new Set([...a].filter(i => b.has(i)));
 	            return intersect;
+            },
+            setUnion(a, b) {
+                let union = new Set([...a, ...b]);
+                return union;
             },
             customSortFn(a,b){
                 // Zettelkasten Index Sort
@@ -85,7 +106,7 @@ document.addEventListener('DOMContentLoaded',async function() {
                 return partsA.length - partsB.length;
             },
             groupedTokens(tokens){
-                console.log(tokens);
+                // console.log(tokens);
                 const grouped = {};
                 for (const token of tokens){
                     const firstLetter = token.charAt(0).toUpperCase();
@@ -95,7 +116,7 @@ document.addEventListener('DOMContentLoaded',async function() {
                     grouped[firstLetter].push(token);
                 }
 
-                console.log(grouped);
+                // console.log(grouped);
                 return grouped;
             }
         }
