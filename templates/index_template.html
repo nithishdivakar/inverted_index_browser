@@ -17,12 +17,12 @@
     }
     .container {
         display: grid;
-        grid-template-columns: 300px 440px auto;
+        grid-template-columns: 300px 440px auto 5px;
         grid-template-rows: 40px auto 20px;
         grid-template-areas: 
-            "h h h"
-            "l c r"
-            "f f f";
+            "hl hm hr g"
+            "l c r g"
+            "f f f g";
         height: 99vh;
         column-gap: 10px;
         row-gap: 10px;
@@ -64,7 +64,7 @@
 </head>
 <body>
 <div id="app" class="container">
-    <div style="grid-area:h; text-align:center; font-size:x-large;">
+    <div style="grid-area: hm; text-align: center; font-size: x-large;line-height:40px">
         <strong>Inverted Index Viewer</strong>
     </div>
     <div class="panel" style="grid-area:l">
@@ -93,27 +93,31 @@
         </div>
     </div>
 
-    <div class="panel" style="grid-area:r; column-width:150px;">
-        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens" style="width:150px;"><br>
+    <div style="grid-area:hr;line-height: 40px;">
+        <input type="text" v-model="tokenSearchQuery" placeholder="Search tokens" style="width:155px;">
         <label> <input type="checkbox" v-model="ORtokenSearch" /> OR </label>
+    </div>
+    <div class="panel" style="grid-area:r;column-width: 150px;">
 
-        <ul style="padding-inline-start: 0;list-style: none;word-break: break-all;">
-            <li v-for="(tokens, letter) in groupedTokens(filteredTokens)" :key="letter">
-                <strong> {{'{{'}} letter {{'}}'}}</strong>
-                <ul style="padding-inline-start:0;">
-                    <li v-for="token in tokens" :key="token" style="padding-inline-start:0;list-style:none;">
-                        <label>
-                            <input
-                            type="checkbox"
-                            :value="token"
-                            v-model="selectedTokens"
-                            />
-                            {{ '{{' }} token {{ '}}' }}
-                        </label>
-                    </li>
-                </ul>
-            </li>
-        </ul>
+        <div style="height:auto; "> 
+            <ul style="padding-inline-start: 0;list-style: none;word-break: break-all;">
+                <li v-for="(tokens, letter) in groupedTokens(filteredTokens)" :key="letter">
+                    <strong> {{'{{'}} letter {{'}}'}}</strong>
+                    <ul style="padding-inline-start:0;">
+                        <li v-for="token in tokens" :key="token" style="padding-inline-start:0;list-style:none;">
+                            <label>
+                                <input
+                                type="checkbox"
+                                :value="token"
+                                v-model="selectedTokens"
+                                />
+                                {{ '{{' }} token {{ '}}' }}
+                            </label>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
     
     <div class="panel" style="grid-area:f">
