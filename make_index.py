@@ -54,7 +54,8 @@ for doc in Path(args.src).glob("*.md"):
     metadata, content = read_note(doc)
     prefix = f"[{metadata['index']}] " if metadata['index'] else ''
 
-    doc_id = metadata['index'] if metadata['index'] else str(doc)
+    # doc_id = metadata['index'] if metadata['index'] else str(doc)
+    doc_id = str(doc)
 
     terms = metadata["tags"].copy()
     terms.extend(preprocess_text(metadata['title']))

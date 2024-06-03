@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded',async function() {
             tokenSearchQuery: '',
             chronologicalSort: false,
             ORtokenSearch: false,
+            showModal: false,
+            newNoteContent: '',
+            newNotePath: '',
 	    },
         computed: {
             tokens() {
@@ -61,9 +64,8 @@ document.addEventListener('DOMContentLoaded',async function() {
                 } else {
                     let displayedDocuments = uniqueDocsArray.sort(this.customSortFn);
                     return displayedDocuments.map(docId => this.ii.documents[docId]).filter(Boolean);
-                }
-                
-            },
+                }  
+            }
         },
         methods: {
             decodeBase64(b64string) {
@@ -118,7 +120,45 @@ document.addEventListener('DOMContentLoaded',async function() {
 
                 // console.log(grouped);
                 return grouped;
-            }
+            },
+            addNote() {
+                const note = {
+                    content: this.newNoteContent,
+                    uri: this.newNotePath,
+                };
+                fetch('/api/add_note', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(note)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.showModal = false;
+                });
+            },
+            async editNote(note_id) {
+                console.log("editNote", note_id);
+                if (typeof note_id === 'undefined') {
+                    note_id = '_empty'
+                    // this.newNoteContent = "";
+                    // this.newNotePath = "";
+                    // this.showModal = true;
+                    console.log("empty");
+                }
+                    try {
+                        const response = await fetch(`/api/get_note_content/${note_id}`);
+                        const data = await response.json();
+                        console.log(data);
+                        this.newNoteContent = data.content;
+                        this.newNotePath = data.note_id;
+                        this.showModal = true;
+                    } catch (error) {
+                        console.error('Error fetching note content:', error);
+                    }
+                
+            },
         }
     });
 });
