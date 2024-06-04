@@ -25,9 +25,10 @@ stop_words = set(stopwords.words('english'))
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument('--src', '-i', type=str, help="input")
-parser.add_argument('--out', '-o', default="data.json", type=str, help="input")
-parser.add_argument('--out1', '-m', default="index.html", type=str, help="input")
-parser.add_argument('--out2','-p', default="app.js", type=str, help="input")
+parser.add_argument('--out', '-o', default="assets", type=str, help="input")
+# parser.add_argument('--out', '-o', default="data.json", type=str, help="input")
+# parser.add_argument('--out1', '-m', default="index.html", type=str, help="input")
+# parser.add_argument('--out2','-p', default="app.js", type=str, help="input")
 args = parser.parse_args()
 
 
@@ -55,7 +56,7 @@ for doc in Path(args.src).glob("*.md"):
     prefix = f"[{metadata['index']}] " if metadata['index'] else ''
 
     # doc_id = metadata['index'] if metadata['index'] else str(doc)
-    doc_id = str(doc)
+    doc_id = str(doc.name)
 
     terms = metadata["tags"].copy()
     terms.extend(preprocess_text(metadata['title']))
@@ -63,7 +64,7 @@ for doc in Path(args.src).glob("*.md"):
     terms = list(set(terms))
 
 
-    DOCUMENT_INDEX[doc_id] = {"uri": str(doc), "terms": terms, "metadata": metadata, "content": encode_to_base64(mistune.html(content))}
+    DOCUMENT_INDEX[doc_id] = {"uri": doc_id, "terms": terms, "metadata": metadata, "content": encode_to_base64(mistune.html(content))}
 
     for term in terms:
         INVERTED_INDEX[term].append(doc_id)
@@ -73,16 +74,20 @@ DATA = {
     'invertedIndex': INVERTED_INDEX
 }
 
-with open(args.out,"w") as G:
+OUT_DIR = Path(args.out)
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+with open(OUT_DIR/"ii_data.json","w") as G:
     json.dump(DATA, G)
 
 rendered_template = index_template.render(INVERTED_INDEX=INVERTED_INDEX, DOCUMENT_INDEX=DOCUMENT_INDEX)
 print(f"Index size {len(INVERTED_INDEX)}")
-with open(args.out1,"w") as G:
+
+with open(OUT_DIR/"ii_index.html","w") as G:
     G.write(rendered_template)
 
 rendered_template = app_template.render(INVERTED_INDEX=INVERTED_INDEX, DOCUMENT_INDEX=DOCUMENT_INDEX)
 
-with open(args.out2,"w") as G:
+with open(OUT_DIR/"ii_app.js","w") as G:
     G.write(rendered_template)
             
