@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded',async function() {
 	      	isDataLoaded: false,
             selectedTokens: [],
             tokenSearchQuery: '',
-            chronologicalSort: false,
+            chronologicalSort: true,
             ORtokenSearch: false,
             showModal: false,
             newNoteContent: '',
@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded',async function() {
                 .then(response => response.json())
                 .then(data => {
                     this.showModal = false;
+                    this.ii.documents[data.uri] = data;
                 });
             },
             async editNote(note_id) {

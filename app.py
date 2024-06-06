@@ -4,23 +4,9 @@ import argparse
 import os,json
 from datetime import datetime
 from pathlib import Path
+import make_index
 
 app = Flask(__name__)
-
-# @app.route('/data', methods=['GET'])
-# def get_data():
-#     data_file = 'data.json'
-#     if os.path.exists(data_file):
-#         with open(data_file, 'r') as file:
-#             data = json.load(file)
-#         return jsonify(data)
-#     else:
-#         return jsonify({"error": "data.json file not found"}), 404
-
-# @app.route('/', methods=['GET'])
-# def serve_home():
-#     print(app.config['ASSETS_DIR'])
-#     return send_from_directory(app.config['ASSETS_DIR'], 'ii_index.html')
 
 
 @app.route('/', methods=['GET'])
@@ -48,7 +34,8 @@ def add_note():
     with open(out_path,"w") as F:
         F.write(data['content'])
     print(f"[INFO] added note {out_path}")
-    return jsonify({'note_id': data['uri'], 'content': data['content']})
+    payload = make_index.doc_to_payload(out_path)
+    return jsonify(payload)
 
 
 @app.route('/api/get_note_content/<path:note_id>', methods=['GET'])

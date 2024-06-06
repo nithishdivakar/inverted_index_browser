@@ -45,7 +45,8 @@
     }
     .post-header {
       display: flex;
-      justify-content: space-between; /* Align items with space between */
+      justify-content: space-between; 
+      background-color: #f7f7f7;
     }
 
     .text-left {
@@ -80,6 +81,10 @@
         width:   80%;
     max-width: 500px;
     }
+    .doc.metadata {
+        font-family: monospace;
+        font-size: xx-small;
+    }
 </style>
 <link rel="stylesheet" href="customstyle.css">
 </head>
@@ -105,19 +110,34 @@
     <div class="panel" style="grid-area:c">
         <div class="post" :id="doc.uri" v-for="doc in displayedDocs" :key="doc.uri" >
             <div class="post-header">
-                <div class="text-left">[{{ '{{' }} doc.metadata['index']{{ '}}' }}] </div>
-                <div class="text-right">{{ '{{' }} doc.metadata['ctime'] {{ '}}' }}
-                      <br>
-                    <code>{{ '{{' }} doc.uri {{ '}}' }}</code>
+                <div class="text-left">
+                    <span class="doc metadata index"> {{ '{{' }} doc.metadata['index']{{ '}}' }} </span>
+                </div>
+                <div class="text-right">
+                    <details class="doc metadata">
+                        <summary>:</summary>
+                        <span class="doc metadata ctime">{{ '{{' }} doc.metadata['ctime'] {{ '}}' }}</span>
+                        <br>
+                        <span class="doc metadata uri"> {{ '{{' }} doc.uri {{ '}}' }}</span>
+                        <br>
+                        <span class="doc metadata title">{{ '{{' }} doc.metadata['title'] {{ '}}' }}</span>
+                    </details>
                 </div>
             </div>
 
-            <big><b>{{ '{{' }} doc.metadata['title'] {{ '}}' }}</b></big>
             <div v-html="decodeBase64(doc.content)" class="post-content"></div>
-            <span class="hashtag"> Tags:</span>  <span class="hashtag" v-for="tag in doc.metadata['tags']"> #{{ '{{' }} tag {{ '}}' }}</span>
-            <br>
-            <button @click="editNote(doc.uri)">Edit</button>
-
+            <span class="doc metadata hashtag" v-if="doc.metadata['tags'] && doc.metadata['tags'].length > 0">
+                Tags:
+                <span class="hashtag" v-for="tag in doc.metadata['tags']"> 
+                    #{{ '{{' }} tag {{ '}}' }}
+                </span>
+            </span>
+            <br><br>
+            <!-- <button @click="editNote(doc.uri)">Edit</button> -->
+            <a 
+                style="font-size: x-small;text-align: center;display: block;color: #673AB7; text-decoration: none;"
+                @click="editNote(doc.uri)"
+                href="#">edit</a>
         </div>
     </div>
 
@@ -156,7 +176,7 @@
             <span class="close" @click="showModal = false">&times;</span>
             <form @submit.prevent="addNote">
                 <input type="text" v-model="newNotePath" placeholder="note uri" style="width:100%;">
-                <textarea v-model="newNoteContent" placeholder="Enter your note here" required style="height: 500px;width: 100%;"></textarea>
+                <textarea v-model="newNoteContent" placeholder="Enter your note here" required style="height: 500px;width: 100%;font-size: small;"></textarea>
                 <button type="submit">Add Note</button>
             </form>
         </div>
