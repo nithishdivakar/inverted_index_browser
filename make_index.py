@@ -5,6 +5,10 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize, regexp_tokenize
+from nltk.stem import PorterStemmer
+
 import math
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer 
 import numpy as np
@@ -18,15 +22,33 @@ import json
 
 stop_words = set(stopwords.words('english'))
 
-
-
-
-
 def preprocess_text(text):
-    tokens = word_tokenize(text.lower())
-    tokens = [word for word in tokens if word.isalpha()]  # Remove punctuation and numbers
-    tokens = [word for word in tokens if word not in stop_words and len(word)>=3]  # Remove stop words
+    # Convert to lowercase
+    text = text.lower()
+    
+    # Define regular expression patterns for special tokens
+    special_token_pattern = r'[@#]\w+'
+    
+    # Tokenize text using regular expression pattern and standard word tokenization
+    tokens = regexp_tokenize(text, pattern=special_token_pattern) + word_tokenize(text)
+    
+    # Remove punctuation (while keeping special tokens)
+    tokens = [token for token in tokens if token.isalnum() or re.match(special_token_pattern, token)]
+    
+    # Remove stop words
+    tokens = [word for word in tokens if not (word in stop_words or  len(word)<3 or word.isdigit())]
+    
+    # Stemming
+    # ps = PorterStemmer()
+    # tokens = [ps.stem(word) for word in tokens]
+    
     return tokens
+
+# def preprocess_text(text):
+#     tokens = word_tokenize(text.lower())
+#     tokens = [word for word in tokens if word.isalpha()]  # Remove punctuation and numbers
+#     tokens = [word for word in tokens if word not in stop_words and len(word)>=3]  # Remove stop words
+#     return tokens
 
 def encode_to_base64(input_string):
     encoded_bytes = base64.b64encode(input_string.encode('utf-8'))
